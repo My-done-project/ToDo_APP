@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api\Task;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Task\StoreTaskRequest;
-use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Models\Task;
 use App\Traits\ApiResponse;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\Task\StoreTaskRequest;
+use App\Http\Requests\Task\UpdateTaskRequest;
+use App\Http\Requests\Task\UpdateTaskStatusRequest;
 
 class TaskController extends Controller
 {
@@ -69,5 +70,15 @@ class TaskController extends Controller
         if ($task->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
+    }
+
+    public function updateStatus(UpdateTaskStatusRequest $request, Task $task): JsonResponse
+    {
+        $this->authorizeTask($task);
+
+        $task->status = $request->status;
+        $task->save();
+
+        return $this->success($task, 'Task status updated successfully');
     }
 }

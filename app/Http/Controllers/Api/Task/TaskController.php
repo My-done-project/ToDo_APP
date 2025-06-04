@@ -12,6 +12,9 @@ use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Requests\Task\RescheduleTaskRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
+use App\Exports\TaskExport;
+use App\Imports\TaskImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TaskController extends Controller
 {
@@ -183,5 +186,20 @@ class TaskController extends Controller
         return $this->success($tasks, 'Filtered task list');
     }
 
+    public function export()
+    {
+        return Excel::download(new TaskExport, 'tasks.csv');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        Excel::import(new TaskImport, $request->file('file'));
+
+        return $this->success(null, 'Task import successful');
+    }
 
 }

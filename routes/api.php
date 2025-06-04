@@ -62,5 +62,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{task}/subtasks', [SubtaskController::class, 'store']);
         Route::put('/subtasks/{subtask}', [SubtaskController::class, 'update']);
         Route::delete('/subtasks/{subtask}', [SubtaskController::class, 'destroy']);
+
+        //**
+        // Export Task */
+        Route::get('/export', [TaskController::class, 'export']);
+        Route::post('/import', [TaskController::class, 'import']);
     });
 });

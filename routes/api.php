@@ -15,6 +15,11 @@ Route::middleware('throttle:5,1')->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 });
 
+Route::get('/test-reminder', function () {
+    Artisan::call('tasks:send-reminder');
+    return response()->json(['message' => 'Reminder command triggered.']);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -29,6 +34,12 @@ Route::middleware('auth:sanctum')->group(function () {
     route::get('/statistics',[TaskController::class,'statistics']);
 
     Route::prefix('tasks')->group(function(){
+        //**
+        // search and filter */
+        Route::get('/search', [TaskController::class, 'search']);
+
+        //**
+        // Task Crud */
         Route::get('/list', [TaskController::class, 'index']);
         Route::post('/create', [TaskController::class, 'store']);
         Route::get('/{task}/show', [TaskController::class, 'show']);

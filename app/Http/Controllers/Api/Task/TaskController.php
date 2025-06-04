@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Task;
 
 use App\Models\Task;
 use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
@@ -146,5 +147,41 @@ class TaskController extends Controller
             'task_this_month'   => $monthTasks,
         ], 'Task statistics');
     }
+
+    public function search(Request $request): JsonResponse
+    {
+        $query = auth()->user()->tasks();
+
+        // Search by title or notes
+        if ($search = $request->get('q')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                ->orWhere('notes', 'like', "%$search%");
+            });
+        }
+
+        // Filter by status
+        if ($status = $request->get('status')) {
+            $query->where('status', $status);
+        }
+
+        // Filter by priority
+        if ($priority = $request->get('priority')) {
+            $query->where('priority', $priority);
+        }
+
+        // Filter by due date range
+        if ($from = $request->get('from_date')) {
+            $query->whereDate('due_date', '>=', $from);
+        }
+        if ($to = $request->get('to_date')) {
+            $query->whereDate('due_date', '<=', $to);
+        }
+
+        $tasks = $query->orderBy('due_date')->get();
+
+        return $this->success($tasks, 'Filtered task list');
+    }
+
 
 }

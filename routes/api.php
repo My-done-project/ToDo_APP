@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Task\TaskController;
+use App\Http\Controllers\Api\Task\SubtaskController;
 use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\PasswordResetController;
 
@@ -30,5 +31,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{task}/update', [TaskController::class, 'update']);
         Route::delete('/{task}/delete', [TaskController::class, 'destroy']);
         Route::put('/{task}/update-status', [TaskController::class, 'updateStatus']);
+
+        //**
+        // SubTask */
+        Route::get('/{task}/subtasks', [SubtaskController::class, 'index']);
+        Route::post('/{task}/subtasks', [SubtaskController::class, 'store']);
+        Route::put('/subtasks/{subtask}', [SubtaskController::class, 'update']);
+        Route::delete('/subtasks/{subtask}', [SubtaskController::class, 'destroy']);
     });
 });

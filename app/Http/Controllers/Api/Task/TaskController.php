@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
+use App\Http\Requests\Task\RescheduleTaskRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
 
 class TaskController extends Controller
@@ -81,4 +82,69 @@ class TaskController extends Controller
 
         return $this->success($task, 'Task status updated successfully');
     }
+
+    public function progress(Task $task): JsonResponse
+    {
+        $this->authorizeTask($task);
+
+        $totalSubtasks = $task->subtasks()->count();
+        $doneSubtasks  = $task->subtasks()->where('is_done', true)->count();
+
+        $progress = $totalSubtasks > 0 ? round(($doneSubtasks / $totalSubtasks) * 100, 2) : 0;
+
+        return $this->success([
+            'task_id'         => $task->id,
+            'title'           => $task->title,
+            'progress'        => $progress,
+            'total_subtasks'  => $totalSubtasks,
+            'done_subtasks'   => $doneSubtasks,
+            'created_at'      => $task->created_at,
+            'updated_at'      => $task->updated_at,
+            'status'          => $task->status,
+        ], 'Task progress');
+    }
+
+    public function calendarView(): JsonResponse
+    {
+        $tasks = auth()->user()->tasks()
+            ->whereNotNull('due_date')
+            ->orderBy('due_date')
+            ->get();
+
+        return $this->success($tasks, 'Task list by date');
+    }
+
+    public function reschedule(RescheduleTaskRequest $request, Task $task): JsonResponse
+    {
+        $this->authorizeTask($task);
+
+        $task->due_date = $request->due_date;
+        $task->save();
+
+        return $this->success($task, 'Task rescheduled successfully');
+    }
+
+    public function statistics(): JsonResponse
+    {
+        $user = auth()->user();
+
+        $totalTasks     = $user->tasks()->count();
+        $completedTasks = $user->tasks()->where('status', 'Done')->count();
+
+        $completionRate = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 2) : 0;
+
+        $todayTasks  = $user->tasks()->whereDate('created_at', today())->count();
+        $weekTasks   = $user->tasks()->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
+        $monthTasks  = $user->tasks()->whereMonth('created_at', now()->month)->count();
+
+        return $this->success([
+            'total_tasks'       => $totalTasks,
+            'completed_tasks'   => $completedTasks,
+            'completion_rate'   => $completionRate,
+            'task_today'        => $todayTasks,
+            'task_this_week'    => $weekTasks,
+            'task_this_month'   => $monthTasks,
+        ], 'Task statistics');
+    }
+
 }

@@ -24,6 +24,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/profile/change-password', [ProfileController::class, 'changePassword']);
     });
 
+    //**
+    // Statistic */
+    route::get('/statistics',[TaskController::class,'statistics']);
+
     Route::prefix('tasks')->group(function(){
         Route::get('/list', [TaskController::class, 'index']);
         Route::post('/create', [TaskController::class, 'store']);
@@ -31,6 +35,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{task}/update', [TaskController::class, 'update']);
         Route::delete('/{task}/delete', [TaskController::class, 'destroy']);
         Route::put('/{task}/update-status', [TaskController::class, 'updateStatus']);
+
+        //**
+        // progres bar & timeline history */
+        Route::get('/{task}/progress', [TaskController::class, 'progress']);
+
+        //**
+        // Reschedule */
+        Route::get('/calendar', [TaskController::class, 'calendarView']);
+        Route::put('/{task}/reschedule', [TaskController::class, 'reschedule']);
 
         //**
         // SubTask */
